@@ -1,8 +1,8 @@
 # Logix: A simple rule-based condition language
 
-Logix is a lightweight language for defining and checking conditions using custom fields and values. It supports different comparison operators, string matching, array checks, and logical groupings, so you can build complex rule sets easily.
+Logix is a lightweight language for defining and checking conditions using custom fields and values. It supports different comparison operators, string matching, array checks, and logical groupings, so you can easily build complex rule sets.
 
-Logix is indentation sensitive, similar to Python, meaning indentation is used to group conditions.
+Logix is indentation sensitive, similar to Python, meaning indentation is used to group conditions. It also supports comments, which can be added with the # symbol.
 
 ## Supported Operators
 
@@ -12,10 +12,23 @@ Logix is indentation sensitive, similar to Python, meaning indentation is used t
 - Logical operators: Combine conditions using `and` and `or`.
 - Array checks: Use `in` to check if a value exists in a list.
 - Negation: Use `not` to negate `in`, `contains`, `between`, `startsWith`, and `endsWith` operators.
-- Deeply nested fields: Logix supports fields like `products[0].info.title` for more complex data structures.
-- Indentation sensitivity: Just like Python, Logix uses indentation to group conditions.
 
-## Example
+Logix supports deeply nested fields like `products[0].info.title` and valid boolean and null values such as `true`, `false`, and `nil` in conditions.
+
+Here's an example of how Logix syntax looks:
+
+```
+group and
+    price gt 100
+    status eq "active"
+    # This is a comment
+    group or
+        category in ["electronics", "furniture"]
+        stock between 50 and 100
+    title not contains "deleted"
+```
+
+## Usage
 
 Here’s a context example:
 
@@ -25,20 +38,32 @@ context := map[string]interface{}{
     "status":   "active",
     "category": "electronics",
     "stock":    75,
+    "products": []interface{}{
+        map[string]interface{}{
+            "info": map[string]interface{}{
+                "title": "Smartphone",
+                "available": true,
+            },
+        },
+    },
+    "discount": nil,
 }
 ```
 
 And here's how you might define a rule:
 
 ```go
-# This is a comment
 group and
     price gt 100
-    status eq "active" # This is a comment
+    status eq "active"
     group or
-        # This is a comment
+        # Checking category and stock
         category in ["electronics", "furniture"]
         stock between 50 and 100
+        # Product-specific checks
+        products[0].info.title eq "Smartphone"
+        products[0].info.available eq true
+        discount eq nil
 ```
 
 This rule checks:
@@ -48,8 +73,11 @@ This rule checks:
 - In the or group, it checks:
     - If category is either "electronics" or "furniture"
     - If stock is between 50 and 100
+    - If the title of the first product is "Smartphone"
+    - If the first product is available
+    - If discount is nil
 
-## Usage
+
 
 You can evaluate this rule with the following code:
 
